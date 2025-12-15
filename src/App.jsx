@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
 import { ProductsProvider } from './context/ProductsContext';
@@ -51,14 +51,14 @@ const AppContent = () => {
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/profile" element={<Profile />} />
-          
+
           {/* Admin Routes */}
           <Route path="/admin/*" element={<PrivateRoute adminOnly={true} />}>
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="products" element={<AdminProducts />} />
             <Route path="sales" element={<AdminSales />} />
           </Route>
-          
+
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
@@ -69,17 +69,15 @@ const AppContent = () => {
 
 function App() {
   return (
-    <Router>
-      <AuthProvider>
-        <ProductsProvider>
-          <CartProvider>
-            <div className="App">
-              <AppContent />
-            </div>
-          </CartProvider>
-        </ProductsProvider>
-      </AuthProvider>
-    </Router>
+    <AuthProvider>
+      <ProductsProvider>
+        <CartProvider>
+          <div className="App">
+            <AppContent />
+          </div>
+        </CartProvider>
+      </ProductsProvider>
+    </AuthProvider>
   );
 }
 

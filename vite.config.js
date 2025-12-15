@@ -2,14 +2,11 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
 export default defineConfig({
-  base: '/AVIN-HOME/', // NAMA REPO WAJIB SAMA
+  base: '/AVIN-HOME/',
   plugins: [react()],
-  server: {
-    port: 3000,
-    open: true
-  },
   build: {
-    outDir: 'dist',
+    outDir: 'docs',
+    emptyOutDir: true,
     sourcemap: true,
     rollupOptions: {
       output: {
