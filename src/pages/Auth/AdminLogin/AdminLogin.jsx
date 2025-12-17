@@ -174,11 +174,7 @@ const AdminLogin = () => {
           </button>
 
           <div className="demo-section">
-      <br />
-<p className="demo-label" style={{ textAlign: "center" }}>
-  Login Demo:
-</p>
-
+            <br></br><p className="demo-label">Login Demo:</p>
             <button 
               type="button" 
               className="admin-demo-btn"

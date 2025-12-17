@@ -110,12 +110,10 @@ const CustomerLogin = () => {
         </div>
 
         {/* Desktop Titles - Only on Desktop */}
-        <h3>Masuk ke Akun Anda</h3>
-        <p className="subtitle">Silakan login untuk melanjutkan</p>
 
         {/* Mobile Form Title */}
         <div className="form-title-mobile">
-          <h3>Masuk ke Akun Anda</h3>
+          <h2>Masuk ke Akun Anda</h2>
           <p>Silakan login untuk melanjutkan</p>
         </div>
 
@@ -232,6 +230,7 @@ const CustomerLogin = () => {
               Daftar Gratis
             </Link>
           </p>
+
         </div>
       </div>
     </div>
