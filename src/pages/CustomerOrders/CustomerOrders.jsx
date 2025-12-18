@@ -116,7 +116,7 @@ const CustomerOrders = () => {
             <p>Anda belum melakukan pemesanan apapun.</p>
             <button 
               className="btn btn-primary"
-              onClick={() => window.location.href = '/products'}
+              onClick={() => window.location.href = './pages/Products/Products'}
             >
               Mulai Belanja
             </button>
