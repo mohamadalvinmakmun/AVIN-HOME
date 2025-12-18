@@ -1,215 +1,229 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useOrder } from '../../../context/OrderContext'; // Ubah dari useOrders menjadi useOrder
+import { useProducts } from '../../../context/ProductsContext';
 import { 
   FaChartLine, 
   FaShoppingCart, 
   FaUsers, 
   FaBox, 
-  FaDollarSign,
+  FaMoneyBillWave,
+  FaCalendarAlt,
   FaArrowUp,
-  FaArrowDown
+  FaArrowDown,
+  FaEye
 } from 'react-icons/fa';
 import './Dashboard.css';
 
 const Dashboard = () => {
-  const stats = [
-    {
-      title: 'Total Pendapatan',
-      value: 'Rp 45.800.000',
-      change: '+12.5%',
-      trend: 'up',
-      icon: <FaDollarSign />,
-      color: '#27ae60'
-    },
-    {
-      title: 'Total Pesanan',
-      value: '128',
-      change: '+8.2%',
-      trend: 'up',
-      icon: <FaShoppingCart />,
-      color: '#3498db'
-    },
-    {
-      title: 'Produk Terjual',
-      value: '342',
-      change: '+15.3%',
-      trend: 'up',
-      icon: <FaBox />,
-      color: '#9b59b6'
-    },
-    {
-      title: 'Pelanggan Baru',
-      value: '24',
-      change: '+5.7%',
-      trend: 'up',
-      icon: <FaUsers />,
-      color: '#e74c3c'
-    }
+  const { getOrdersStats, getRecentOrders, getOrdersByStatus } = useOrder(); // Ubah di sini juga
+  const { products } = useProducts();
+  
+  const stats = getOrdersStats();
+  const recentOrders = getRecentOrders(5);
+  const pendingOrders = getOrdersByStatus('pending');
+
+  // ... sisa kode tetap sama
+
+  // Chart data (sample)
+  const monthlyRevenue = [
+    { month: 'Jan', revenue: 45000000 },
+    { month: 'Feb', revenue: 52000000 },
+    { month: 'Mar', revenue: 48000000 },
+    { month: 'Apr', revenue: 60000000 },
+    { month: 'May', revenue: 55000000 },
+    { month: 'Jun', revenue: 65000000 },
   ];
 
-  const recentOrders = [
-    { id: 'ORD-001', customer: 'Budi Santoso', amount: 4500000, status: 'completed', date: '2024-03-15' },
-    { id: 'ORD-002', customer: 'Sari Wijaya', amount: 3200000, status: 'processing', date: '2024-03-15' },
-    { id: 'ORD-003', customer: 'Ahmad Rizal', amount: 1850000, status: 'pending', date: '2024-03-14' },
-    { id: 'ORD-004', customer: 'Lisa Anggraeni', amount: 6500000, status: 'completed', date: '2024-03-14' },
-    { id: 'ORD-005', customer: 'Rudi Hartono', amount: 1250000, status: 'shipped', date: '2024-03-13' }
-  ];
+  // Top products
+  const topProducts = products.slice(0, 5);
 
-  const topProducts = [
-    { name: 'Sofa Minimalis Velvet', sales: 45, revenue: 179955000 },
-    { name: 'Meja Makan Kayu Jati', sales: 32, revenue: 89568000 },
-    { name: 'Tempat Tidur King Size', sales: 28, revenue: 167972000 },
-    { name: 'Kursi Kerja Ergonomis', sales: 56, revenue: 89544000 },
-    { name: 'Lemari Pakaian 3 Pintu', sales: 24, revenue: 59976000 }
-  ];
+  // Format currency
+  const formatCurrency = (amount) => {
+    return `Rp ${amount.toLocaleString()}`;
+  };
 
   return (
     <div className="admin-dashboard">
       <div className="dashboard-header">
         <h1>Dashboard Admin</h1>
-        <p>Selamat datang kembali, Admin! Berikut adalah ringkasan performa toko Anda.</p>
+        <p className="dashboard-subtitle">Ringkasan performa toko</p>
       </div>
 
       {/* Stats Cards */}
       <div className="stats-grid">
-        {stats.map((stat, index) => (
-          <div key={index} className="stat-card">
-            <div className="stat-icon" style={{ backgroundColor: `${stat.color}20`, color: stat.color }}>
-              {stat.icon}
-            </div>
-            <div className="stat-info">
-              <h3>{stat.title}</h3>
-              <div className="stat-value">{stat.value}</div>
-              <div className={`stat-change ${stat.trend}`}>
-                {stat.trend === 'up' ? <FaArrowUp /> : <FaArrowDown />}
-                <span>{stat.change}</span>
-              </div>
-            </div>
+        <div className="stat-card">
+          <div className="stat-icon revenue">
+            <FaMoneyBillWave />
           </div>
-        ))}
-      </div>
-
-      <div className="dashboard-content">
-        {/* Recent Orders */}
-        <div className="dashboard-section">
-          <div className="section-header">
-            <h2>
-              <FaShoppingCart /> Pesanan Terbaru
-            </h2>
-            <Link to="/admin/sales" className="view-all">
-              Lihat Semua →
-            </Link>
-          </div>
-          <div className="section-content">
-            <div className="orders-table">
-              <table>
-                <thead>
-                  <tr>
-                    <th>ID Pesanan</th>
-                    <th>Pelanggan</th>
-                    <th>Tanggal</th>
-                    <th>Jumlah</th>
-                    <th>Status</th>
-                    <th>Aksi</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {recentOrders.map(order => (
-                    <tr key={order.id}>
-                      <td>{order.id}</td>
-                      <td>{order.customer}</td>
-                      <td>{order.date}</td>
-                      <td>Rp {order.amount.toLocaleString()}</td>
-                      <td>
-                        <span className={`status-badge status-${order.status}`}>
-                          {order.status === 'completed' && 'Selesai'}
-                          {order.status === 'processing' && 'Diproses'}
-                          {order.status === 'pending' && 'Menunggu'}
-                          {order.status === 'shipped' && 'Dikirim'}
-                        </span>
-                      </td>
-                      <td>
-                        <button className="action-btn view-btn">Lihat</button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+          <div className="stat-info">
+            <h3>Total Pendapatan</h3>
+            <div className="stat-value">{formatCurrency(stats.totalRevenue)}</div>
+            <div className="stat-change up">
+              <FaArrowUp /> +12.5%
             </div>
           </div>
         </div>
-
-        {/* Top Products */}
-        <div className="dashboard-section">
-          <div className="section-header">
-            <h2>
-              <FaChartLine /> Produk Terlaris
-            </h2>
-            <Link to="/admin/products" className="view-all">
-              Lihat Semua →
-            </Link>
+        
+        <div className="stat-card">
+          <div className="stat-icon orders">
+            <FaShoppingCart />
           </div>
-          <div className="section-content">
-            <div className="products-list">
-              {topProducts.map((product, index) => (
-                <div key={index} className="product-item">
-                  <div className="product-rank">#{index + 1}</div>
-                  <div className="product-info">
-                    <h4>{product.name}</h4>
-                    <div className="product-meta">
-                      <span>{product.sales} terjual</span>
-                      <span>Rp {product.revenue.toLocaleString()}</span>
-                    </div>
-                  </div>
-                  <div className="progress-bar">
+          <div className="stat-info">
+            <h3>Total Pesanan</h3>
+            <div className="stat-value">{stats.totalOrders}</div>
+            <div className="stat-change up">
+              <FaArrowUp /> +8.2%
+            </div>
+          </div>
+        </div>
+        
+        <div className="stat-card">
+          <div className="stat-icon products">
+            <FaBox />
+          </div>
+          <div className="stat-info">
+            <h3>Total Produk</h3>
+            <div className="stat-value">{products.length}</div>
+            <div className="stat-change up">
+              <FaArrowUp /> +5.7%
+            </div>
+          </div>
+        </div>
+        
+        <div className="stat-card">
+          <div className="stat-icon customers">
+            <FaUsers />
+          </div>
+          <div className="stat-info">
+            <h3>Pelanggan Baru</h3>
+            <div className="stat-value">1,248</div>
+            <div className="stat-change down">
+              <FaArrowDown /> -2.1%
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="dashboard-content">
+        {/* Revenue Chart */}
+        <div className="dashboard-section revenue-chart">
+          <div className="section-header">
+            <h2>Pendapatan Bulanan</h2>
+            <select className="period-select">
+              <option>6 Bulan Terakhir</option>
+              <option>12 Bulan Terakhir</option>
+              <option>Tahun Ini</option>
+            </select>
+          </div>
+          <div className="chart-container">
+            <div className="chart-bars">
+              {monthlyRevenue.map((month, index) => (
+                <div key={index} className="chart-bar">
+                  <div className="bar-label">{month.month}</div>
+                  <div className="bar-container">
                     <div 
-                      className="progress-fill"
-                      style={{ width: `${(product.sales / 56) * 100}%` }}
+                      className="bar-fill"
+                      style={{ height: `${(month.revenue / 70000000) * 100}%` }}
                     ></div>
                   </div>
+                  <div className="bar-value">{formatCurrency(month.revenue)}</div>
                 </div>
               ))}
             </div>
           </div>
         </div>
 
-        {/* Quick Actions */}
-        <div className="dashboard-section">
+        {/* Recent Orders */}
+        <div className="dashboard-section recent-orders">
           <div className="section-header">
-            <h2>Aksi Cepat</h2>
+            <h2>Pesanan Terbaru</h2>
+            <Link to="/admin/orders" className="view-all">
+              Lihat Semua <FaEye />
+            </Link>
           </div>
-          <div className="section-content">
-            <div className="quick-actions">
-              <Link to="/admin/products" className="quick-action">
-                <div className="action-icon">
-                  <FaBox />
+          <div className="orders-list">
+            {recentOrders.map(order => (
+              <div key={order.id} className="order-item">
+                <div className="order-info">
+                  <div className="order-id">{order.id}</div>
+                  <div className="order-customer">{order.customerName}</div>
+                  <div className="order-date">
+                    {new Date(order.createdAt).toLocaleDateString('id-ID')}
+                  </div>
                 </div>
-                <div className="action-info">
-                  <h4>Kelola Produk</h4>
-                  <p>Tambah, edit, atau hapus produk</p>
+                <div className="order-status">
+                  <span className={`status-badge ${order.status}`}>
+                    {order.status === 'pending' && 'Menunggu'}
+                    {order.status === 'processing' && 'Diproses'}
+                    {order.status === 'shipped' && 'Dikirim'}
+                    {order.status === 'delivered' && 'Terkirim'}
+                    {order.status === 'cancelled' && 'Dibatalkan'}
+                  </span>
                 </div>
+                <div className="order-total">{formatCurrency(order.totalAmount)}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Pending Orders */}
+        <div className="dashboard-section pending-orders">
+          <div className="section-header">
+            <h2>Pesanan Menunggu</h2>
+            <span className="count-badge">{pendingOrders.length}</span>
+          </div>
+          <div className="pending-list">
+            {pendingOrders.slice(0, 3).map(order => (
+              <div key={order.id} className="pending-item">
+                <div className="pending-info">
+                  <div className="pending-id">{order.id}</div>
+                  <div className="pending-customer">{order.customerName}</div>
+                  <div className="pending-time">
+                    {new Date(order.createdAt).toLocaleTimeString('id-ID', {
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })}
+                  </div>
+                </div>
+                <Link to="/admin/orders" className="btn btn-sm btn-primary">
+                  Proses
+                </Link>
+              </div>
+            ))}
+          </div>
+          {pendingOrders.length > 3 && (
+            <div className="more-orders">
+              <Link to="/admin/orders">
+                +{pendingOrders.length - 3} pesanan menunggu lainnya
               </Link>
-              
-              <Link to="/admin/sales" className="quick-action">
-                <div className="action-icon">
-                  <FaShoppingCart />
+            </div>
+          )}
+        </div>
+
+        {/* Top Products */}
+        <div className="dashboard-section top-products">
+          <div className="section-header">
+            <h2>Produk Terlaris</h2>
+          </div>
+          <div className="products-list">
+            {topProducts.map(product => (
+              <div key={product.id} className="product-item">
+                <img src={product.image} alt={product.name} />
+                <div className="product-info">
+                  <h4>{product.name}</h4>
+                  <div className="product-stats">
+                    <span className="price">{formatCurrency(product.price)}</span>
+                    <span className="sold">45 terjual</span>
+                  </div>
                 </div>
-                <div className="action-info">
-                  <h4>Laporan Penjualan</h4>
-                  <p>Lihat laporan dan analisis</p>
-                </div>
-              </Link>
-              
-              <div className="quick-action">
-                <div className="action-icon">
-                  <FaUsers />
-                </div>
-                <div className="action-info">
-                  <h4>Kelola Pelanggan</h4>
-                  <p>Lihat data pelanggan</p>
+                <div className="product-rating">
+                  <span className="stars">★★★★★</span>
+                  <span className="rating">4.8</span>
                 </div>
               </div>
-            </div>
+            ))}
           </div>
         </div>
       </div>

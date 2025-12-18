@@ -50,6 +50,12 @@ const AdminLogin = () => {
     }
   };
 
+  // Di bagian atas komponen AdminLogin
+useEffect(() => {
+  console.log('Window width:', window.innerWidth);
+  console.log('User Agent:', navigator.userAgent);
+}, []);
+
   const handleDemoLogin = () => {
     setEmail('admin@avinhome.com');
     setPassword('admin123');

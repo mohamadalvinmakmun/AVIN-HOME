@@ -749,4 +749,65 @@
     width: 120px;
     height: 120px;
   }
+  /* Spinner kecil untuk tombol loading */
+.spinner-small {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: white;
+  animation: spin 0.6s linear infinite;
+  margin-right: 8px;
+  display: inline-block;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Payment instructions */
+.payment-instructions {
+  margin-top: 25px;
+  padding: 20px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  border-left: 4px solid var(--secondary-color);
+}
+
+.payment-instructions h4 {
+  margin-bottom: 15px;
+  color: var(--dark-color);
+}
+
+.bank-details {
+  background-color: white;
+  padding: 15px;
+  border-radius: 6px;
+  margin-bottom: 15px;
+}
+
+.bank-details p {
+  margin-bottom: 5px;
+  color: var(--text-color);
+}
+
+.instruction-note {
+  font-size: 0.9rem;
+  color: var(--text-light);
+  font-style: italic;
+  padding: 10px;
+  background-color: #fff3cd;
+  border-radius: 4px;
+}
+
+/* Bank info in review */
+.bank-info {
+  margin-top: 5px;
+  padding: 5px 10px;
+  background-color: #e7f3ff;
+  border-radius: 4px;
+  display: inline-block;
+}
 }

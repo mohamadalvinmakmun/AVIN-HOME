@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
@@ -22,7 +22,10 @@ import {
   FaShoppingBag,
   FaInfoCircle,
   FaPhoneAlt,
-  FaUserPlus
+  FaUserPlus,
+  FaCog,
+  FaHistory,
+  FaBell
 } from 'react-icons/fa';
 import './Header.css';
 
@@ -31,13 +34,16 @@ const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const { user, logout } = useAuth();
   const { getItemCount } = useCart();
   const navigate = useNavigate();
   const location = useLocation();
+  const dropdownRef = useRef(null);
 
   const cartItemCount = getItemCount();
 
+  // Handle scroll effect
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 50);
@@ -47,10 +53,24 @@ const Header = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Close menu when route changes
   useEffect(() => {
     setIsMenuOpen(false);
     setIsSearchOpen(false);
+    setIsDropdownOpen(false);
   }, [location.pathname]);
+
+  // Handle click outside dropdown
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -64,6 +84,8 @@ const Header = () => {
   const handleLogout = () => {
     logout();
     navigate('/');
+    setIsMenuOpen(false);
+    setIsDropdownOpen(false);
   };
 
   const adminMenu = [
@@ -71,17 +93,34 @@ const Header = () => {
     { path: '/admin/products', label: 'Produk', icon: <FaBox /> },
     { path: '/admin/orders', label: 'Pesanan', icon: <FaShoppingBag /> },
     { path: '/admin/users', label: 'Pengguna', icon: <FaUsers /> },
+    { path: '/admin/settings', label: 'Pengaturan', icon: <FaCog /> },
   ];
 
   const customerMenu = [
+    { path: '/customer/orders', label: 'Pesanan Saya', icon: <FaHistory /> },
+    { path: '/customer/profile', label: 'Profil Saya', icon: <FaUser /> },
+    { path: '/customer/notifications', label: 'Notifikasi', icon: <FaBell />, badge: 3 },
+  ];
+
+  const publicMenu = [
     { path: '/', label: 'Beranda', icon: <FaHome /> },
     { path: '/products', label: 'Produk', icon: <FaBox /> },
-    { path: '/cart', label: 'Keranjang', icon: <FaShoppingCart /> },
-    { path: '/customer/orders', label: 'Pesanan Saya', icon: <FaShoppingBag /> },
-    { path: '/customer/profile', label: 'Profil', icon: <FaUser /> },
+    { path: '/about', label: 'Tentang', icon: <FaInfoCircle /> },
+    { path: '/contact', label: 'Kontak', icon: <FaPhoneAlt /> },
   ];
 
   const quickSearchTerms = ['Sofa', 'Meja Makan', 'Tempat Tidur', 'Lemari', 'Kursi', 'Lampu', 'Dapur'];
+
+  // Get user initials for avatar
+  const getUserInitials = () => {
+    if (!user?.name) return '?';
+    return user.name.charAt(0).toUpperCase();
+  };
+
+  // Toggle user dropdown
+  const toggleDropdown = () => {
+    setIsDropdownOpen(!isDropdownOpen);
+  };
 
   return (
     <>
@@ -113,16 +152,48 @@ const Header = () => {
             {/* Desktop Navigation */}
             <nav className="nav-desktop">
               <ul className="nav-list">
-                <li><Link to="/" className="nav-link"><FaHome /> Beranda</Link></li>
-                <li><Link to="/products" className="nav-link"><FaBox /> Produk</Link></li>
-                <li><Link to="/about" className="nav-link"><FaInfoCircle /> Tentang</Link></li>
-                <li><Link to="/contact" className="nav-link"><FaPhoneAlt /> Kontak</Link></li>
+                {/* Public Menu Items */}
+                {publicMenu.map((item) => (
+                  <li key={item.path}>
+                    <Link 
+                      to={item.path} 
+                      className={`nav-link ${location.pathname === item.path ? 'active' : ''}`}
+                    >
+                      {item.icon}
+                      {item.label}
+                    </Link>
+                  </li>
+                ))}
+
+                {/* Customer Menu Items when logged in */}
+                {user && user.role === 'customer' && (
+                  <>
+                    <li>
+                      <Link 
+                        to="/customer/orders" 
+                        className={`nav-link ${location.pathname.includes('/customer/orders') ? 'active' : ''}`}
+                      >
+                        <FaShoppingBag />
+                        Pesanan Saya
+                      </Link>
+                    </li>
+                  </>
+                )}
+                
+                {/* Admin Dropdown */}
                 {user?.role === 'admin' && (
                   <li className="nav-dropdown">
-                    <span className="nav-link"><FaChartBar /> Admin</span>
+                    <span className="nav-link">
+                      <FaChartBar />
+                      Admin
+                    </span>
                     <div className="dropdown-menu">
                       {adminMenu.map((item) => (
-                        <Link key={item.path} to={item.path} className="dropdown-item">
+                        <Link 
+                          key={item.path} 
+                          to={item.path} 
+                          className="dropdown-item"
+                        >
                           {item.icon}
                           <span>{item.label}</span>
                         </Link>
@@ -145,12 +216,13 @@ const Header = () => {
                 className="action-btn search-toggle"
                 onClick={() => setIsSearchOpen(true)}
                 aria-label="Search"
+                title="Cari produk"
               >
                 <FaSearch />
               </button>
 
               {/* Cart */}
-              <Link to="/cart" className="action-btn cart-btn">
+              <Link to="/cart" className="action-btn cart-btn" title="Keranjang Belanja">
                 <FaShoppingCart />
                 {cartItemCount > 0 && (
                   <span className="cart-badge">{cartItemCount}</span>
@@ -158,81 +230,133 @@ const Header = () => {
               </Link>
 
               {/* User Menu - Desktop */}
-              <div className="user-menu">
+              <div className="user-menu" ref={dropdownRef}>
                 {user ? (
                   <>
-                    <button className="action-btn user-btn">
+                    <button 
+                      className="action-btn user-btn"
+                      onClick={toggleDropdown}
+                      aria-label="User menu"
+                      title={`Akun ${user.name}`}
+                    >
                       <div className={`user-avatar ${user.role}`}>
-                        {user.name.charAt(0).toUpperCase()}
+                        {getUserInitials()}
                       </div>
                     </button>
-                    <div className="user-dropdown">
-                      <div className="user-info">
-                        <div className={`user-avatar ${user.role}`}>
-                          {user.name.charAt(0).toUpperCase()}
+                    {isDropdownOpen && (
+                      <div className="user-dropdown">
+                        <div className="user-info">
+                          <div className={`user-avatar ${user.role}`}>
+                            {getUserInitials()}
+                          </div>
+                          <div className="user-details">
+                            <h4 className="text-truncate">{user.name}</h4>
+                            <p className="user-role text-truncate">
+                              {user.role === 'admin' ? 'Administrator' : 'Pelanggan'}
+                            </p>
+                          </div>
                         </div>
-                        <div className="user-details">
-                          <h4>{user.name}</h4>
-                          <p className="user-role">
-                            {user.role === 'admin' ? 'Administrator' : 'Pelanggan'}
-                          </p>
-                        </div>
+                        <div className="dropdown-divider"></div>
+                        
+                        {/* Customer Dropdown Menu */}
+                        {user.role === 'customer' ? (
+                          <>
+                            {customerMenu.map((item) => (
+                              <Link 
+                                key={item.path} 
+                                to={item.path} 
+                                className="dropdown-item"
+                                onClick={() => setIsDropdownOpen(false)}
+                              >
+                                {item.icon}
+                                <span>{item.label}</span>
+                                {item.badge && (
+                                  <span className="dropdown-badge">{item.badge}</span>
+                                )}
+                              </Link>
+                            ))}
+                            <Link 
+                              to="/cart" 
+                              className="dropdown-item"
+                              onClick={() => setIsDropdownOpen(false)}
+                            >
+                              <FaShoppingCart />
+                              <span>Keranjang</span>
+                              {cartItemCount > 0 && (
+                                <span className="dropdown-badge">{cartItemCount}</span>
+                              )}
+                            </Link>
+                          </>
+                        ) : (
+                          /* Admin Dropdown Menu */
+                          <>
+                            {adminMenu.map((item) => (
+                              <Link 
+                                key={item.path} 
+                                to={item.path} 
+                                className="dropdown-item"
+                                onClick={() => setIsDropdownOpen(false)}
+                              >
+                                {item.icon}
+                                <span>{item.label}</span>
+                              </Link>
+                            ))}
+                          </>
+                        )}
+                        
+                        <div className="dropdown-divider"></div>
+                        <button 
+                          onClick={handleLogout} 
+                          className="dropdown-item logout"
+                        >
+                          <FaSignOutAlt />
+                          <span>Keluar</span>
+                        </button>
                       </div>
-                      <div className="dropdown-divider"></div>
-                      {user.role === 'admin' ? (
-                        <>
-                          {adminMenu.map((item) => (
-                            <Link key={item.path} to={item.path} className="dropdown-item">
-                              {item.icon}
-                              <span>{item.label}</span>
-                            </Link>
-                          ))}
-                          <div className="dropdown-divider"></div>
-                        </>
-                      ) : (
-                        <>
-                          {customerMenu.map((item) => (
-                            <Link key={item.path} to={item.path} className="dropdown-item">
-                              {item.icon}
-                              <span>{item.label}</span>
-                            </Link>
-                          ))}
-                          <div className="dropdown-divider"></div>
-                        </>
-                      )}
-                      <button onClick={handleLogout} className="dropdown-item logout">
-                        <FaSignOutAlt />
-                        <span>Keluar</span>
-                      </button>
-                    </div>
+                    )}
                   </>
                 ) : (
                   <div className="login-dropdown">
-                    <button className="action-btn user-btn">
+                    <button 
+                      className="action-btn user-btn"
+                      onClick={toggleDropdown}
+                      aria-label="Login"
+                      title="Masuk ke akun"
+                    >
                       <FaUser />
                     </button>
-                    <div className="user-dropdown">
-                      <div className="dropdown-header">
-                        <h4>Masuk ke Akun</h4>
-                        <p>Akses belanja & transaksi</p>
+                    {isDropdownOpen && (
+                      <div className="user-dropdown">
+                        <div className="dropdown-header">
+                          <h4>Masuk ke Akun</h4>
+                          <p>Akses belanja & transaksi</p>
+                        </div>
+                        <div className="dropdown-divider"></div>
+                        <Link 
+                          to="/customer/login" 
+                          className="dropdown-item customer-login"
+                          onClick={() => setIsDropdownOpen(false)}
+                        >
+                          <FaUsers />
+                          <div>
+                            <strong>Login Pelanggan</strong><br />
+                            <small>Mulai berbelanja sekarang</small>
+                          </div>
+                        </Link>
+                        <div className="dropdown-divider"></div>
+                        <Link 
+                          to="/register" 
+                          className="dropdown-item"
+                          onClick={() => setIsDropdownOpen(false)}
+                        >
+                          <FaUserPlus />
+                          <div>
+                            <strong>Daftar Pelanggan</strong><br />
+                            <small>Buat akun baru</small>
+                          </div>
+                        </Link>
                       </div>
-                      <div className="dropdown-divider"></div>
-                      <Link to="/customer/login" className="dropdown-item customer-login">
-                        <FaUsers />
-                        <div>
-                          <strong>Login Pelanggan</strong><br />
-                          <small>Mulai berbelanja sekarang</small>
-                        </div>
-                      </Link>
-                      <div className="dropdown-divider"></div>
-                      <Link to="/register" className="dropdown-item">
-                        <FaUserPlus />
-                        <div>
-                          <strong>Daftar Pelanggan</strong><br />
-                          <small>Buat akun baru</small>
-                        </div>
-                      </Link>
-                    </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -242,6 +366,7 @@ const Header = () => {
                 className="mobile-toggle"
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
                 aria-label="Menu"
+                title="Menu"
               >
                 {isMenuOpen ? <FaTimes /> : <FaBars />}
               </button>
@@ -255,11 +380,13 @@ const Header = () => {
             {user ? (
               <div className="mobile-user-info">
                 <div className={`mobile-user-avatar ${user.role}`}>
-                  {user.name.charAt(0).toUpperCase()}
+                  {getUserInitials()}
                 </div>
                 <div>
-                  <h4>{user.name}</h4>
-                  <p>{user.role === 'admin' ? 'Administrator' : 'Pelanggan'}</p>
+                  <h4 className="text-truncate">{user.name}</h4>
+                  <p className="text-truncate">
+                    {user.role === 'admin' ? 'Administrator' : 'Pelanggan'}
+                  </p>
                 </div>
               </div>
             ) : (
@@ -268,7 +395,11 @@ const Header = () => {
                 <p>Akses belanja & transaksi</p>
               </div>
             )}
-            <button className="close-sidebar" onClick={() => setIsMenuOpen(false)}>
+            <button 
+              className="close-sidebar" 
+              onClick={() => setIsMenuOpen(false)}
+              aria-label="Close menu"
+            >
               <FaTimes />
             </button>
           </div>
@@ -276,32 +407,49 @@ const Header = () => {
           {!user && (
             <div className="mobile-sidebar-auth">
               <div className="mobile-auth-buttons">
-                <Link to="/customer/login" className="btn btn-primary" onClick={() => setIsMenuOpen(false)}>
-                  <FaUsers /> Login Pelanggan
+                <Link 
+                  to="/customer/login" 
+                  className="btn btn-primary" 
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  <FaUsers /> 
+                  <span>Login Pelanggan</span>
                 </Link>
                 <div className="divider-text">
                   <span>ATAU</span>
                 </div>
-                <Link to="/register" className="btn btn-outline" onClick={() => setIsMenuOpen(false)}>
-                  <FaUserPlus /> Daftar Pelanggan
+                <Link 
+                  to="/register" 
+                  className="btn btn-outline" 
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  <FaUserPlus /> 
+                  <span>Daftar Pelanggan</span>
                 </Link>
               </div>
             </div>
           )}
 
           <nav className="mobile-sidebar-nav">
-            {/* Menu Utama */}
-            <Link to="/" className="mobile-nav-item" onClick={() => setIsMenuOpen(false)}>
-              <span className="mobile-nav-icon"><FaHome /></span>
-              <span className="mobile-nav-label">Beranda</span>
-            </Link>
-            
-            <Link to="/products" className="mobile-nav-item" onClick={() => setIsMenuOpen(false)}>
-              <span className="mobile-nav-icon"><FaBox /></span>
-              <span className="mobile-nav-label">Produk</span>
-            </Link>
+            {/* Public Menu */}
+            {publicMenu.map((item) => (
+              <Link 
+                key={item.path} 
+                to={item.path} 
+                className={`mobile-nav-item ${location.pathname === item.path ? 'active' : ''}`}
+                onClick={() => setIsMenuOpen(false)}
+              >
+                <span className="mobile-nav-icon">{item.icon}</span>
+                <span className="mobile-nav-label">{item.label}</span>
+              </Link>
+            ))}
 
-            <Link to="/cart" className="mobile-nav-item" onClick={() => setIsMenuOpen(false)}>
+            {/* Cart Item */}
+            <Link 
+              to="/cart" 
+              className="mobile-nav-item"
+              onClick={() => setIsMenuOpen(false)}
+            >
               <span className="mobile-nav-icon"><FaShoppingCart /></span>
               <span className="mobile-nav-label">Keranjang</span>
               {cartItemCount > 0 && (
@@ -309,28 +457,24 @@ const Header = () => {
               )}
             </Link>
             
-            <Link to="/about" className="mobile-nav-item" onClick={() => setIsMenuOpen(false)}>
-              <span className="mobile-nav-icon"><FaInfoCircle /></span>
-              <span className="mobile-nav-label">Tentang Kami</span>
-            </Link>
-            
-            <Link to="/contact" className="mobile-nav-item" onClick={() => setIsMenuOpen(false)}>
-              <span className="mobile-nav-icon"><FaPhoneAlt /></span>
-              <span className="mobile-nav-label">Kontak</span>
-            </Link>
-            
             {/* Menu Customer */}
             {user && user.role === 'customer' && (
               <>
                 <div className="mobile-nav-divider">Akun Saya</div>
-                <Link to="/customer/orders" className="mobile-nav-item" onClick={() => setIsMenuOpen(false)}>
-                  <span className="mobile-nav-icon"><FaShoppingBag /></span>
-                  <span className="mobile-nav-label">Pesanan Saya</span>
-                </Link>
-                <Link to="/customer/profile" className="mobile-nav-item" onClick={() => setIsMenuOpen(false)}>
-                  <span className="mobile-nav-icon"><FaUser /></span>
-                  <span className="mobile-nav-label">Profil Saya</span>
-                </Link>
+                {customerMenu.map((item) => (
+                  <Link 
+                    key={item.path} 
+                    to={item.path} 
+                    className={`mobile-nav-item ${location.pathname.includes(item.path) ? 'active' : ''}`}
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    <span className="mobile-nav-icon">{item.icon}</span>
+                    <span className="mobile-nav-label">{item.label}</span>
+                    {item.badge && (
+                      <span className="mobile-badge">{item.badge}</span>
+                    )}
+                  </Link>
+                ))}
               </>
             )}
             
@@ -342,7 +486,7 @@ const Header = () => {
                   <Link 
                     key={item.path} 
                     to={item.path} 
-                    className="mobile-nav-item admin"
+                    className={`mobile-nav-item admin ${location.pathname === item.path ? 'active' : ''}`}
                     onClick={() => setIsMenuOpen(false)}
                   >
                     <span className="mobile-nav-icon">{item.icon}</span>
@@ -355,14 +499,26 @@ const Header = () => {
 
           <div className="mobile-sidebar-footer">
             {user ? (
-              <button onClick={() => { handleLogout(); setIsMenuOpen(false); }} className="btn btn-secondary logout-btn">
-                <FaSignOutAlt /> Keluar
+              <button 
+                onClick={() => { 
+                  handleLogout(); 
+                  setIsMenuOpen(false); 
+                }} 
+                className="btn btn-secondary logout-btn"
+              >
+                <FaSignOutAlt /> 
+                <span>Keluar</span>
               </button>
             ) : (
               <div className="guest-footer">
                 <p>Belum punya akun?</p>
-                <Link to="/register" className="btn btn-outline" onClick={() => setIsMenuOpen(false)}>
-                  Daftar Sekarang
+                <Link 
+                  to="/register" 
+                  className="btn btn-outline" 
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  <FaUserPlus />
+                  <span>Daftar Sekarang</span>
                 </Link>
               </div>
             )}
@@ -381,7 +537,11 @@ const Header = () => {
           <div className="search-modal" onClick={(e) => e.stopPropagation()}>
             <div className="search-modal-header">
               <h3>Cari Produk</h3>
-              <button className="close-search" onClick={() => setIsSearchOpen(false)}>
+              <button 
+                className="close-search" 
+                onClick={() => setIsSearchOpen(false)}
+                aria-label="Close search"
+              >
                 <FaTimes />
               </button>
             </div>
@@ -396,6 +556,7 @@ const Header = () => {
                   onChange={(e) => setSearchQuery(e.target.value)}
                   autoFocus
                   className="search-modal-input"
+                  aria-label="Search products"
                 />
                 <button type="submit" className="search-modal-submit">
                   Cari
@@ -415,6 +576,7 @@ const Header = () => {
                       navigate(`/products?search=${encodeURIComponent(term)}`);
                       setIsSearchOpen(false);
                     }}
+                    aria-label={`Search for ${term}`}
                   >
                     {term}
                   </button>

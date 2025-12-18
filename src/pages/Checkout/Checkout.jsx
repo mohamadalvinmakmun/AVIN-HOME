@@ -1,19 +1,26 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
-import { FaLock, FaCreditCard, FaTruck, FaCheckCircle, FaShoppingBag, FaArrowLeft, FaHome, FaShoppingCart } from 'react-icons/fa';
+import { useOrder } from '../../context/OrderContext';
+import { 
+  FaLock, FaCreditCard, FaTruck, FaCheckCircle, 
+  FaShoppingBag, FaHome, FaShoppingCart, FaBox, 
+  FaShippingFast, FaMoneyBillWave, FaMobileAlt 
+} from 'react-icons/fa';
 import './Checkout.css';
 
 const Checkout = () => {
   const { cartItems, getCartTotal, clearCart } = useCart();
   const { user } = useAuth();
+  const { createOrder } = useOrder();
   const navigate = useNavigate();
   
   const [step, setStep] = useState(1);
-  const [paymentMethod, setPaymentMethod] = useState('credit-card');
+  const [paymentMethod, setPaymentMethod] = useState('bank-transfer');
   const [orderComplete, setOrderComplete] = useState(false);
   const [orderNumber, setOrderNumber] = useState('');
+  const [isProcessing, setIsProcessing] = useState(false);
   
   const [formData, setFormData] = useState({
     fullName: user?.name || '',
@@ -38,12 +45,24 @@ const Checkout = () => {
     'Sumatera Utara', 'Sumatera Selatan', 'Kalimantan Timur', 'Sulawesi Selatan'
   ];
 
+  // Auto-fill user data if logged in
+  useEffect(() => {
+    if (user) {
+      setFormData(prev => ({
+        ...prev,
+        fullName: user.name || '',
+        email: user.email || '',
+        phone: user.phone || '',
+        address: user.address || ''
+      }));
+    }
+  }, [user]);
+
   useEffect(() => {
     if (cartItems.length === 0 && !orderComplete) {
-      // Jika keranjang kosong dan belum selesai order, tetap di halaman checkout
-      // tapi tampilkan pesan
+      navigate('/cart');
     }
-  }, [cartItems.length, orderComplete]);
+  }, [cartItems.length, orderComplete, navigate]);
 
   const validateStep1 = () => {
     const newErrors = {};
@@ -52,10 +71,12 @@ const Checkout = () => {
     if (!formData.email.trim()) newErrors.email = 'Email wajib diisi';
     else if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = 'Email tidak valid';
     if (!formData.phone.trim()) newErrors.phone = 'Nomor telepon wajib diisi';
+    else if (!/^[0-9+\-\s]+$/.test(formData.phone)) newErrors.phone = 'Nomor telepon tidak valid';
     if (!formData.address.trim()) newErrors.address = 'Alamat wajib diisi';
     if (!formData.city.trim()) newErrors.city = 'Kota wajib diisi';
     if (!formData.province) newErrors.province = 'Provinsi wajib dipilih';
     if (!formData.postalCode.trim()) newErrors.postalCode = 'Kode pos wajib diisi';
+    else if (!/^\d+$/.test(formData.postalCode)) newErrors.postalCode = 'Kode pos harus angka';
     
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -88,14 +109,58 @@ const Checkout = () => {
     setStep(step - 1);
   };
 
-  const handleSubmitOrder = () => {
-    const newOrderNumber = `ORD-${Date.now().toString().slice(-8)}`;
-    setOrderNumber(newOrderNumber);
-    setOrderComplete(true);
+  const handleSubmitOrder = async () => {
+    if (isProcessing) return;
     
-    setTimeout(() => {
-      clearCart();
-    }, 3000);
+    setIsProcessing(true);
+    
+    try {
+      // Buat order data
+      const orderData = {
+        userId: user?.id || `guest_${Date.now()}`,
+        customerName: formData.fullName,
+        customerEmail: formData.email,
+        customerPhone: formData.phone,
+        shippingAddress: {
+          address: formData.address,
+          city: formData.city,
+          province: formData.province,
+          postalCode: formData.postalCode,
+          notes: formData.notes
+        },
+        paymentMethod: paymentMethod,
+        items: cartItems.map(item => ({
+          id: item.id,
+          name: item.name,
+          price: item.discountPrice || item.price,
+          quantity: item.quantity,
+          image: item.image,
+          total: (item.discountPrice || item.price) * item.quantity
+        })),
+        subtotal: subtotal,
+        shippingFee: shippingFee,
+        tax: tax,
+        totalAmount: total,
+        status: 'pending',
+        paymentStatus: 'pending'
+      };
+
+      // Create order in context
+      const newOrder = createOrder(orderData);
+      setOrderNumber(newOrder.id);
+      setOrderComplete(true);
+      
+      // Clear cart after delay
+      setTimeout(() => {
+        clearCart();
+        setIsProcessing(false);
+      }, 2000);
+      
+    } catch (error) {
+      console.error('Error creating order:', error);
+      alert('Terjadi kesalahan saat membuat pesanan. Silakan coba lagi.');
+      setIsProcessing(false);
+    }
   };
 
   // Jika keranjang kosong dan belum selesai order
@@ -142,9 +207,9 @@ const Checkout = () => {
                 <FaHome style={{ marginRight: '10px' }} />
                 Kembali ke Beranda
               </button>
-              <button onClick={() => navigate('/products')} className="btn btn-secondary">
-                <FaShoppingCart style={{ marginRight: '10px' }} />
-                Lanjutkan Belanja
+              <button onClick={() => navigate('/customer/orders')} className="btn btn-secondary">
+                <FaBox style={{ marginRight: '10px' }} />
+                Lihat Pesanan Saya
               </button>
             </div>
           </div>
@@ -193,7 +258,10 @@ const Checkout = () => {
             {/* Step 1: Shipping Information */}
             {step === 1 && (
               <div className="form-step">
-                <h2 className="form-title">Informasi Pengiriman</h2>
+                <h2 className="form-title">
+                  <FaShippingFast style={{ marginRight: '10px' }} />
+                  Informasi Pengiriman
+                </h2>
                 
                 <div className="form-grid">
                   <div className="form-group">
@@ -206,6 +274,7 @@ const Checkout = () => {
                       onChange={handleInputChange}
                       className={errors.fullName ? 'error' : ''}
                       placeholder="Masukkan nama lengkap"
+                      disabled={isProcessing}
                     />
                     {errors.fullName && <span className="error-message">{errors.fullName}</span>}
                   </div>
@@ -220,6 +289,7 @@ const Checkout = () => {
                       onChange={handleInputChange}
                       className={errors.email ? 'error' : ''}
                       placeholder="contoh@email.com"
+                      disabled={isProcessing}
                     />
                     {errors.email && <span className="error-message">{errors.email}</span>}
                   </div>
@@ -234,6 +304,7 @@ const Checkout = () => {
                       onChange={handleInputChange}
                       className={errors.phone ? 'error' : ''}
                       placeholder="081234567890"
+                      disabled={isProcessing}
                     />
                     {errors.phone && <span className="error-message">{errors.phone}</span>}
                   </div>
@@ -248,6 +319,7 @@ const Checkout = () => {
                       className={errors.address ? 'error' : ''}
                       placeholder="Jl. Contoh No. 123, RT/RW, Kelurahan"
                       rows="3"
+                      disabled={isProcessing}
                     />
                     {errors.address && <span className="error-message">{errors.address}</span>}
                   </div>
@@ -262,6 +334,7 @@ const Checkout = () => {
                       onChange={handleInputChange}
                       className={errors.city ? 'error' : ''}
                       placeholder="Nama kota"
+                      disabled={isProcessing}
                     />
                     {errors.city && <span className="error-message">{errors.city}</span>}
                   </div>
@@ -274,6 +347,7 @@ const Checkout = () => {
                       value={formData.province}
                       onChange={handleInputChange}
                       className={errors.province ? 'error' : ''}
+                      disabled={isProcessing}
                     >
                       <option value="">Pilih Provinsi</option>
                       {provinces.map(province => (
@@ -293,6 +367,7 @@ const Checkout = () => {
                       onChange={handleInputChange}
                       className={errors.postalCode ? 'error' : ''}
                       placeholder="12345"
+                      disabled={isProcessing}
                     />
                     {errors.postalCode && <span className="error-message">{errors.postalCode}</span>}
                   </div>
@@ -306,6 +381,7 @@ const Checkout = () => {
                       onChange={handleInputChange}
                       placeholder="Catatan tambahan untuk pengiriman"
                       rows="2"
+                      disabled={isProcessing}
                     />
                   </div>
                 </div>
@@ -315,12 +391,30 @@ const Checkout = () => {
             {/* Step 2: Payment Method */}
             {step === 2 && (
               <div className="form-step">
-                <h2 className="form-title">Metode Pembayaran</h2>
+                <h2 className="form-title">
+                  <FaMoneyBillWave style={{ marginRight: '10px' }} />
+                  Metode Pembayaran
+                </h2>
                 
                 <div className="payment-methods">
                   <div 
+                    className={`payment-method ${paymentMethod === 'bank-transfer' ? 'selected' : ''}`}
+                    onClick={() => !isProcessing && setPaymentMethod('bank-transfer')}
+                  >
+                    <div className="payment-icon">
+                      🏦
+                    </div>
+                    <div className="payment-info">
+                      <h4>Transfer Bank</h4>
+                      <p>BCA, Mandiri, BRI, BNI</p>
+                      <small>Transfer manual ke rekening kami</small>
+                    </div>
+                    <div className="payment-check"></div>
+                  </div>
+                  
+                  <div 
                     className={`payment-method ${paymentMethod === 'credit-card' ? 'selected' : ''}`}
-                    onClick={() => setPaymentMethod('credit-card')}
+                    onClick={() => !isProcessing && setPaymentMethod('credit-card')}
                   >
                     <div className="payment-icon">
                       <FaCreditCard />
@@ -328,37 +422,29 @@ const Checkout = () => {
                     <div className="payment-info">
                       <h4>Kartu Kredit/Debit</h4>
                       <p>Visa, Mastercard, JCB</p>
-                    </div>
-                    <div className="payment-check"></div>
-                  </div>
-                  
-                  <div 
-                    className={`payment-method ${paymentMethod === 'bank-transfer' ? 'selected' : ''}`}
-                    onClick={() => setPaymentMethod('bank-transfer')}
-                  >
-                    <div className="payment-icon">🏦</div>
-                    <div className="payment-info">
-                      <h4>Transfer Bank</h4>
-                      <p>BCA, Mandiri, BRI, BNI</p>
+                      <small>Pembayaran instan</small>
                     </div>
                     <div className="payment-check"></div>
                   </div>
                   
                   <div 
                     className={`payment-method ${paymentMethod === 'e-wallet' ? 'selected' : ''}`}
-                    onClick={() => setPaymentMethod('e-wallet')}
+                    onClick={() => !isProcessing && setPaymentMethod('e-wallet')}
                   >
-                    <div className="payment-icon">📱</div>
+                    <div className="payment-icon">
+                      <FaMobileAlt />
+                    </div>
                     <div className="payment-info">
                       <h4>E-Wallet</h4>
                       <p>OVO, GoPay, Dana, LinkAja</p>
+                      <small>Pembayaran cepat via QRIS</small>
                     </div>
                     <div className="payment-check"></div>
                   </div>
                   
                   <div 
                     className={`payment-method ${paymentMethod === 'cod' ? 'selected' : ''}`}
-                    onClick={() => setPaymentMethod('cod')}
+                    onClick={() => !isProcessing && setPaymentMethod('cod')}
                   >
                     <div className="payment-icon">
                       <FaTruck />
@@ -366,33 +452,25 @@ const Checkout = () => {
                     <div className="payment-info">
                       <h4>COD (Cash on Delivery)</h4>
                       <p>Bayar saat barang sampai</p>
+                      <small>Tambahan biaya Rp 10.000</small>
                     </div>
                     <div className="payment-check"></div>
                   </div>
                 </div>
 
-                {/* Payment Details */}
-                {paymentMethod === 'credit-card' && (
-                  <div className="payment-details">
-                    <h4>Detail Kartu</h4>
-                    <div className="form-grid">
-                      <div className="form-group">
-                        <label>Nomor Kartu</label>
-                        <input type="text" placeholder="1234 5678 9012 3456" />
-                      </div>
-                      <div className="form-group">
-                        <label>Nama di Kartu</label>
-                        <input type="text" placeholder="Nama pemilik kartu" />
-                      </div>
-                      <div className="form-group">
-                        <label>Tanggal Kadaluarsa</label>
-                        <input type="text" placeholder="MM/YY" />
-                      </div>
-                      <div className="form-group">
-                        <label>CVV</label>
-                        <input type="text" placeholder="123" />
-                      </div>
+                {/* Payment Instructions */}
+                {paymentMethod === 'bank-transfer' && (
+                  <div className="payment-instructions">
+                    <h4>Instruksi Pembayaran:</h4>
+                    <div className="bank-details">
+                      <p><strong>Bank:</strong> BCA (Bank Central Asia)</p>
+                      <p><strong>No. Rekening:</strong> 123 456 7890</p>
+                      <p><strong>Atas Nama:</strong> AVIN HOME FURNITURE</p>
+                      <p><strong>Total Transfer:</strong> Rp {total.toLocaleString()}</p>
                     </div>
+                    <p className="instruction-note">
+                      Silakan transfer tepat sesuai total pesanan. Pesanan akan diproses setelah pembayaran terverifikasi.
+                    </p>
                   </div>
                 )}
               </div>
@@ -401,7 +479,10 @@ const Checkout = () => {
             {/* Step 3: Order Review */}
             {step === 3 && (
               <div className="form-step">
-                <h2 className="form-title">Konfirmasi Pesanan</h2>
+                <h2 className="form-title">
+                  <FaCheckCircle style={{ marginRight: '10px' }} />
+                  Konfirmasi Pesanan
+                </h2>
                 
                 <div className="order-review">
                   <div className="review-section">
@@ -410,8 +491,8 @@ const Checkout = () => {
                       <p><strong>{formData.fullName}</strong></p>
                       <p>{formData.address}</p>
                       <p>{formData.city}, {formData.province} {formData.postalCode}</p>
-                      <p>{formData.phone}</p>
-                      <p>{formData.email}</p>
+                      <p>📱 {formData.phone}</p>
+                      <p>📧 {formData.email}</p>
                     </div>
                   </div>
                   
@@ -424,6 +505,11 @@ const Checkout = () => {
                         {paymentMethod === 'e-wallet' && 'E-Wallet'}
                         {paymentMethod === 'cod' && 'COD (Cash on Delivery)'}
                       </strong></p>
+                      {paymentMethod === 'bank-transfer' && (
+                        <p className="bank-info">
+                          <small>BCA: 123 456 7890 a.n AVIN HOME</small>
+                        </p>
+                      )}
                     </div>
                   </div>
                   
@@ -455,18 +541,39 @@ const Checkout = () => {
             {/* Navigation Buttons */}
             <div className="form-navigation">
               {step > 1 && (
-                <button onClick={handlePrevStep} className="btn btn-secondary">
+                <button 
+                  onClick={handlePrevStep} 
+                  className="btn btn-secondary"
+                  disabled={isProcessing}
+                >
                   Kembali
                 </button>
               )}
               
               {step < 3 ? (
-                <button onClick={handleNextStep} className="btn btn-primary">
+                <button 
+                  onClick={handleNextStep} 
+                  className="btn btn-primary"
+                  disabled={isProcessing}
+                >
                   Lanjut
                 </button>
               ) : (
-                <button onClick={handleSubmitOrder} className="btn btn-success">
-                  <FaLock /> Bayar Sekarang
+                <button 
+                  onClick={handleSubmitOrder} 
+                  className="btn btn-success"
+                  disabled={isProcessing}
+                >
+                  {isProcessing ? (
+                    <>
+                      <span className="spinner-small"></span>
+                      Memproses...
+                    </>
+                  ) : (
+                    <>
+                      <FaLock /> Konfirmasi & Bayar
+                    </>
+                  )}
                 </button>
               )}
             </div>
@@ -512,10 +619,16 @@ const Checkout = () => {
                   <span>PPN (11%)</span>
                   <span>Rp {tax.toLocaleString()}</span>
                 </div>
+                {paymentMethod === 'cod' && (
+                  <div className="total-row">
+                    <span>Biaya COD</span>
+                    <span>Rp 10.000</span>
+                  </div>
+                )}
                 <div className="total-divider"></div>
                 <div className="total-row grand-total">
                   <strong>Total</strong>
-                  <strong>Rp {total.toLocaleString()}</strong>
+                  <strong>Rp {(paymentMethod === 'cod' ? total + 10000 : total).toLocaleString()}</strong>
                 </div>
               </div>
               

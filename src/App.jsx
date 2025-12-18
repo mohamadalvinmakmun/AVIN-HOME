@@ -3,6 +3,7 @@ import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
 import { ProductsProvider } from './context/ProductsContext';
+import { OrderProvider } from './context/OrderContext';
 
 import Header from './components/Header/Header';
 import Footer from './components/Footer/Footer';
@@ -20,10 +21,12 @@ import AuthLayout from './pages/Auth/AuthLayout';
 import Dashboard from './pages/Admin/Dashboard/Dashboard';
 import AdminProducts from './pages/Admin/AdminProducts/AdminProducts';
 import AdminSales from './pages/Admin/AdminSales/AdminSales';
+import AdminOrders from './pages/Admin/AdminOrders/AdminOrders';
 
 import About from './pages/About/About';
 import Contact from './pages/Contact/Contact';
 import Profile from './pages/Profile/Profile';
+import CustomerOrders from './pages/CustomerOrders/CustomerOrders';
 
 import PrivateRoute from './components/PrivateRoute';
 import './App.css';
@@ -52,7 +55,6 @@ const AppContent = () => {
 
       <main className="main-content">
         <Routes>
-
           {/* PUBLIC */}
           <Route path="/" element={<Home />} />
           <Route path="/products" element={<Products />} />
@@ -72,6 +74,7 @@ const AppContent = () => {
             <Route path="home" element={<Home />} />
             <Route path="checkout" element={<Checkout />} />
             <Route path="profile" element={<Profile />} />
+            <Route path="orders" element={<CustomerOrders />} />
           </Route>
 
           {/* ADMIN (PROTECTED) */}
@@ -79,6 +82,7 @@ const AppContent = () => {
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="products" element={<AdminProducts />} />
             <Route path="sales" element={<AdminSales />} />
+            <Route path="orders" element={<AdminOrders />} />
           </Route>
 
           {/* REDIRECT */}
@@ -86,7 +90,6 @@ const AppContent = () => {
 
           {/* FALLBACK */}
           <Route path="*" element={<Navigate to="/" replace />} />
-
         </Routes>
       </main>
 
@@ -100,9 +103,11 @@ function App() {
     <AuthProvider>
       <ProductsProvider>
         <CartProvider>
-          <div className="App">
-            <AppContent />
-          </div>
+          <OrderProvider>
+            <div className="App">
+              <AppContent />
+            </div>
+          </OrderProvider>
         </CartProvider>
       </ProductsProvider>
     </AuthProvider>

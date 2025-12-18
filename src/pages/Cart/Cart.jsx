@@ -35,10 +35,14 @@ const Cart = () => {
 
   const handleCheckout = () => {
     if (!user) {
-      navigate('/login?redirect=checkout');
+      // Redirect ke login dengan state untuk kembali ke checkout setelah login
+      navigate('/customer/login', { 
+        state: { from: { pathname: '/customer/checkout' } } 
+      });
       return;
     }
-    navigate('/checkout');
+    // PERBAIKAN DI SINI: arahkan ke /customer/checkout (bukan /checkout)
+    navigate('/customer/checkout');
   };
 
   const handleClearCart = () => {
