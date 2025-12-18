@@ -213,22 +213,15 @@ const Header = () => {
                     </button>
                     <div className="user-dropdown">
                       <div className="dropdown-header">
-                        <h4>Pilih Login</h4>
-                        <p>Masuk sesuai dengan peran Anda</p>
+                        <h4>Masuk ke Akun</h4>
+                        <p>Akses belanja & transaksi</p>
                       </div>
                       <div className="dropdown-divider"></div>
                       <Link to="/customer/login" className="dropdown-item customer-login">
                         <FaUsers />
                         <div>
                           <strong>Login Pelanggan</strong><br />
-                          <small>Akses belanja & transaksi</small>
-                        </div>
-                      </Link>
-                      <Link to="/admin/login" className="dropdown-item admin-login">
-                        <FaShieldAlt />
-                        <div>
-                          <strong>Login Admin</strong><br />
-                          <small>Manajemen sistem</small>
+                          <small>Mulai berbelanja sekarang</small>
                         </div>
                       </Link>
                       <div className="dropdown-divider"></div>
@@ -271,8 +264,8 @@ const Header = () => {
               </div>
             ) : (
               <div className="auth-buttons-header">
-                <h4>Pilih Login</h4>
-                <p>Masuk sesuai peran Anda</p>
+                <h4>Masuk ke Akun</h4>
+                <p>Akses belanja & transaksi</p>
               </div>
             )}
             <button className="close-sidebar" onClick={() => setIsMenuOpen(false)}>
@@ -285,9 +278,6 @@ const Header = () => {
               <div className="mobile-auth-buttons">
                 <Link to="/customer/login" className="btn btn-primary" onClick={() => setIsMenuOpen(false)}>
                   <FaUsers /> Login Pelanggan
-                </Link>
-                <Link to="/admin/login" className="btn btn-secondary" onClick={() => setIsMenuOpen(false)}>
-                  <FaShieldAlt /> Login Admin
                 </Link>
                 <div className="divider-text">
                   <span>ATAU</span>
