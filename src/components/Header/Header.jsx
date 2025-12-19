@@ -100,7 +100,7 @@ const Header = () => {
   const customerMenu = [
     { path: '/customer/orders', label: 'Pesanan Saya', icon: <FaHistory /> },
     { path: '/customer/profile', label: 'Profil Saya', icon: <FaUser /> },
-    { path: '/customer/notifications', label: 'Notifikasi', icon: <FaBell />, badge: 3 },
+    { path: '/customer/notifications', label: 'Notifikasi', icon: <FaBell />, },
   ];
 
   const publicMenu = [
