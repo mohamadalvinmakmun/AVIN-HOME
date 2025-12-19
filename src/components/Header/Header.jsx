@@ -40,7 +40,7 @@ const Header = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const dropdownRef = useRef(null);
-  const sidebarRef = useRef(null); // Tambah ref untuk sidebar
+  const sidebarRef = useRef(null);
 
   const cartItemCount = getItemCount();
 
@@ -100,7 +100,7 @@ const Header = () => {
   const customerMenu = [
     { path: '/customer/orders', label: 'Pesanan Saya', icon: <FaHistory /> },
     { path: '/customer/profile', label: 'Profil Saya', icon: <FaUser /> },
-    { path: '/customer/notifications', label: 'Notifikasi', icon: <FaBell />, },
+    { path: '/customer/notifications', label: 'Notifikasi', icon: <FaBell /> },
   ];
 
   const publicMenu = [
@@ -500,6 +500,7 @@ const Header = () => {
             </nav>
           </div>
 
+          {/* Mobile Sidebar Footer - PERBAIKAN UTAMA */}
           <div className="mobile-sidebar-footer">
             {user ? (
               <button 
@@ -507,7 +508,7 @@ const Header = () => {
                   handleLogout(); 
                   setIsMenuOpen(false); 
                 }} 
-                className="btn btn-secondary logout-btn"
+                className="logout-btn-mobile"
               >
                 <FaSignOutAlt /> 
                 <span>Keluar</span>
@@ -519,6 +520,7 @@ const Header = () => {
                   to="/register" 
                   className="btn btn-outline" 
                   onClick={() => setIsMenuOpen(false)}
+                  style={{width: '100%'}}
                 >
                   <FaUserPlus />
                   <span>Daftar Sekarang</span>
