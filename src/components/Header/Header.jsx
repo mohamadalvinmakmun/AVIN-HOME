@@ -40,6 +40,7 @@ const Header = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const dropdownRef = useRef(null);
+  const sidebarRef = useRef(null); // Tambah ref untuk sidebar
 
   const cartItemCount = getItemCount();
 
@@ -250,8 +251,8 @@ const Header = () => {
                             {getUserInitials()}
                           </div>
                           <div className="user-details">
-                            <h4 className="text-truncate">{user.name}</h4>
-                            <p className="user-role text-truncate">
+                            <h4 className="user-name-full">{user.name}</h4>
+                            <p className="user-role">
                               {user.role === 'admin' ? 'Administrator' : 'Pelanggan'}
                             </p>
                           </div>
@@ -375,16 +376,16 @@ const Header = () => {
         </div>
 
         {/* Mobile Sidebar Navigation */}
-        <div className={`mobile-sidebar ${isMenuOpen ? 'open' : ''}`}>
+        <div className={`mobile-sidebar ${isMenuOpen ? 'open' : ''}`} ref={sidebarRef}>
           <div className="mobile-sidebar-header">
             {user ? (
               <div className="mobile-user-info">
                 <div className={`mobile-user-avatar ${user.role}`}>
                   {getUserInitials()}
                 </div>
-                <div>
-                  <h4 className="text-truncate">{user.name}</h4>
-                  <p className="text-truncate">
+                <div className="mobile-user-details">
+                  <h4 className="mobile-user-name">{user.name}</h4>
+                  <p className="mobile-user-role">
                     {user.role === 'admin' ? 'Administrator' : 'Pelanggan'}
                   </p>
                 </div>
@@ -430,72 +431,74 @@ const Header = () => {
             </div>
           )}
 
-          <nav className="mobile-sidebar-nav">
-            {/* Public Menu */}
-            {publicMenu.map((item) => (
+          <div className="mobile-nav-scroll-container">
+            <nav className="mobile-sidebar-nav">
+              {/* Public Menu */}
+              {publicMenu.map((item) => (
+                <Link 
+                  key={item.path} 
+                  to={item.path} 
+                  className={`mobile-nav-item ${location.pathname === item.path ? 'active' : ''}`}
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  <span className="mobile-nav-icon">{item.icon}</span>
+                  <span className="mobile-nav-label">{item.label}</span>
+                </Link>
+              ))}
+
+              {/* Cart Item */}
               <Link 
-                key={item.path} 
-                to={item.path} 
-                className={`mobile-nav-item ${location.pathname === item.path ? 'active' : ''}`}
+                to="/cart" 
+                className="mobile-nav-item"
                 onClick={() => setIsMenuOpen(false)}
               >
-                <span className="mobile-nav-icon">{item.icon}</span>
-                <span className="mobile-nav-label">{item.label}</span>
+                <span className="mobile-nav-icon"><FaShoppingCart /></span>
+                <span className="mobile-nav-label">Keranjang</span>
+                {cartItemCount > 0 && (
+                  <span className="mobile-badge">{cartItemCount}</span>
+                )}
               </Link>
-            ))}
-
-            {/* Cart Item */}
-            <Link 
-              to="/cart" 
-              className="mobile-nav-item"
-              onClick={() => setIsMenuOpen(false)}
-            >
-              <span className="mobile-nav-icon"><FaShoppingCart /></span>
-              <span className="mobile-nav-label">Keranjang</span>
-              {cartItemCount > 0 && (
-                <span className="mobile-badge">{cartItemCount}</span>
+              
+              {/* Menu Customer */}
+              {user && user.role === 'customer' && (
+                <>
+                  <div className="mobile-nav-divider">Akun Saya</div>
+                  {customerMenu.map((item) => (
+                    <Link 
+                      key={item.path} 
+                      to={item.path} 
+                      className={`mobile-nav-item ${location.pathname.includes(item.path) ? 'active' : ''}`}
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      <span className="mobile-nav-icon">{item.icon}</span>
+                      <span className="mobile-nav-label">{item.label}</span>
+                      {item.badge && (
+                        <span className="mobile-badge">{item.badge}</span>
+                      )}
+                    </Link>
+                  ))}
+                </>
               )}
-            </Link>
-            
-            {/* Menu Customer */}
-            {user && user.role === 'customer' && (
-              <>
-                <div className="mobile-nav-divider">Akun Saya</div>
-                {customerMenu.map((item) => (
-                  <Link 
-                    key={item.path} 
-                    to={item.path} 
-                    className={`mobile-nav-item ${location.pathname.includes(item.path) ? 'active' : ''}`}
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    <span className="mobile-nav-icon">{item.icon}</span>
-                    <span className="mobile-nav-label">{item.label}</span>
-                    {item.badge && (
-                      <span className="mobile-badge">{item.badge}</span>
-                    )}
-                  </Link>
-                ))}
-              </>
-            )}
-            
-            {/* Menu Admin */}
-            {user?.role === 'admin' && (
-              <>
-                <div className="mobile-nav-divider">Admin Panel</div>
-                {adminMenu.map((item) => (
-                  <Link 
-                    key={item.path} 
-                    to={item.path} 
-                    className={`mobile-nav-item admin ${location.pathname === item.path ? 'active' : ''}`}
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    <span className="mobile-nav-icon">{item.icon}</span>
-                    <span className="mobile-nav-label">{item.label}</span>
-                  </Link>
-                ))}
-              </>
-            )}
-          </nav>
+              
+              {/* Menu Admin */}
+              {user?.role === 'admin' && (
+                <>
+                  <div className="mobile-nav-divider">Admin Panel</div>
+                  {adminMenu.map((item) => (
+                    <Link 
+                      key={item.path} 
+                      to={item.path} 
+                      className={`mobile-nav-item admin ${location.pathname === item.path ? 'active' : ''}`}
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      <span className="mobile-nav-icon">{item.icon}</span>
+                      <span className="mobile-nav-label">{item.label}</span>
+                    </Link>
+                  ))}
+                </>
+              )}
+            </nav>
+          </div>
 
           <div className="mobile-sidebar-footer">
             {user ? (

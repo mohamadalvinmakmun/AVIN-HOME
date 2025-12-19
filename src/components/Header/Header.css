@@ -1246,6 +1246,179 @@
   animation: fadeInUp 0.2s ease-out;
 }
 
+/* Tambahkan di bagian akhir file CSS, sebelum penutup */
+
+/* Container untuk scroll di mobile sidebar */
+.mobile-nav-scroll-container {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Mobile sidebar nav dengan scroll */
+.mobile-sidebar-nav {
+  flex: 1;
+  padding: 20px 0;
+  display: flex;
+  flex-direction: column;
+  min-height: min-content;
+}
+
+/* Perbaikan nama pengguna di sidebar mobile */
+.mobile-user-details {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.mobile-user-name {
+  color: white;
+  margin: 0 0 5px 0;
+  font-size: 1.1rem;
+  word-break: break-word; /* Boleh patah kata jika panjang */
+  white-space: normal; /* Biarkan normal, tidak ellipsis */
+  overflow: visible; /* Biarkan terlihat semua */
+  text-overflow: clip;
+  line-height: 1.3;
+  max-width: 180px; /* Atur lebar maksimal */
+}
+
+.mobile-user-role {
+  color: rgba(255, 255, 255, 0.8);
+  margin: 0;
+  font-size: 0.9rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Perbaikan nama di desktop dropdown */
+.user-details .user-name-full {
+  margin: 0;
+  font-size: 1rem;
+  color: #333;
+  word-break: break-word;
+  white-space: normal;
+  overflow: visible;
+  line-height: 1.3;
+  max-width: 200px;
+}
+
+/* Pastikan semua teks di mobile sidebar bisa scroll */
+.mobile-sidebar {
+  display: flex;
+  flex-direction: column;
+  max-height: 100vh;
+}
+
+/* Perbaikan untuk item nav yang panjang */
+.mobile-nav-label {
+  flex: 1;
+  font-size: 1rem;
+  font-weight: 500;
+  white-space: normal;
+  word-break: break-word;
+  line-height: 1.4;
+  padding-right: 10px;
+}
+
+/* Perbaikan header di mobile */
+.mobile-sidebar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 20px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  background: linear-gradient(135deg, #1e3c72, #2a5298);
+  color: white;
+  min-height: 90px; /* Tinggi minimum untuk header */
+}
+
+.mobile-user-info {
+  display: flex;
+  align-items: flex-start;
+  gap: 15px;
+  flex: 1;
+  min-width: 0;
+  padding-right: 10px;
+}
+
+/* Responsif untuk nama yang sangat panjang */
+@media (max-width: 768px) {
+  .mobile-user-name {
+    font-size: 1rem;
+    max-width: 160px;
+  }
+  
+  .mobile-sidebar-header {
+    padding: 15px;
+    min-height: 80px;
+  }
+  
+  .mobile-user-avatar {
+  width: 44px !important;
+  height: 44px !important;
+  min-width: 44px;
+  max-width: 44px;
+  min-height: 44px;
+  max-height: 44px;
+
+  aspect-ratio: 1 / 1;
+
+  border-radius: 50%;
+  overflow: hidden;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 0.9rem;
+  line-height: 1;
+
+  padding: 0;
+  flex: 0 0 44px;
+
+  box-sizing: border-box;
+}
+
+}
+
+@media (max-width: 480px) {
+  .mobile-user-name {
+    font-size: 0.95rem;
+    max-width: 140px;
+  }
+  
+ .mobile-user-avatar {
+  width: 44px !important;
+  height: 44px !important;
+  min-width: 44px;
+  max-width: 44px;
+  min-height: 44px;
+  max-height: 44px;
+
+  aspect-ratio: 1 / 1;
+
+  border-radius: 50%;
+  overflow: hidden;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 0.9rem;
+  line-height: 1;
+
+  padding: 0;
+  flex: 0 0 44px;
+
+  box-sizing: border-box;
+}
+
+}
+
 .dropdown-item:nth-child(1) { animation-delay: 0.05s; }
 .dropdown-item:nth-child(2) { animation-delay: 0.1s; }
 .dropdown-item:nth-child(3) { animation-delay: 0.15s; }
