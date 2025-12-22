@@ -93,7 +93,6 @@ const Header = () => {
     { path: '/admin/dashboard', label: 'Dashboard', icon: <FaChartBar /> },
     { path: '/admin/products', label: 'Produk', icon: <FaBox /> },
     { path: '/admin/orders', label: 'Pesanan', icon: <FaShoppingBag /> },
-    { path: '/admin/users', label: 'Pengguna', icon: <FaUsers /> },
     { path: '/admin/settings', label: 'Pengaturan', icon: <FaCog /> },
   ];
 

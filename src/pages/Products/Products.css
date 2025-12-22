@@ -70,11 +70,16 @@
   color: var(--dark-color);
 }
 
+/* FIXED SEARCH-BOX - DIPERBAIKI LAGI */
 .search-box {
   display: flex;
+  align-items: center;
   background-color: var(--light-color);
   border-radius: 4px;
   overflow: hidden;
+  width: 100%;
+  box-sizing: border-box;
+  max-width: 100%;
 }
 
 .search-box input {
@@ -83,6 +88,11 @@
   background: none;
   padding: 10px;
   outline: none;
+  font-size: 14px;
+  min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
+  max-width: calc(100% - 45px);
 }
 
 .search-box .search-btn {
@@ -91,6 +101,11 @@
   padding: 10px 15px;
   cursor: pointer;
   color: var(--text-light);
+  flex-shrink: 0;
+  width: 45px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .category-filters {
@@ -110,6 +125,8 @@
   cursor: pointer;
   transition: var(--transition);
   text-align: left;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .category-filter:hover {
@@ -153,6 +170,9 @@
   border: 1px solid var(--border-color);
   border-radius: 4px;
   text-align: center;
+  min-width: 0;
+  max-width: 80px;
+  box-sizing: border-box;
 }
 
 .price-inputs span {
@@ -221,6 +241,8 @@
   background-color: white;
   cursor: pointer;
   min-width: 200px;
+  max-width: 250px;
+  box-sizing: border-box;
 }
 
 .products-grid {
@@ -261,6 +283,37 @@
 .no-products p {
   color: var(--text-light);
   margin-bottom: 20px;
+}
+
+.active-filters {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+
+.active-filter {
+  background: var(--light-color);
+  padding: 5px 12px;
+  border-radius: 15px;
+  font-size: 0.85rem;
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
+}
+
+.clear-filters-btn {
+  width: 100%;
+  margin-top: 10px;
+  padding: 10px;
+  background-color: var(--light-color);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.clear-filters-btn:hover {
+  background-color: #e0e0e0;
 }
 
 /* Responsive Design */
@@ -310,6 +363,16 @@
     width: 100%;
     justify-content: space-between;
   }
+  
+  /* FIX SEARCH-BOX DI MOBILE */
+  .search-box {
+    width: 100%;
+    max-width: 100%;
+  }
+  
+  .search-box input {
+    max-width: calc(100% - 45px);
+  }
 }
 
 @media (max-width: 768px) {
@@ -328,28 +391,21 @@
   
   .sort-select {
     min-width: 150px;
+    max-width: 100%;
   }
-
-  /* Add to existing Products.css */
-
-.active-filters {
-  display: flex;
-  gap: 10px;
-  margin-top: 10px;
-  flex-wrap: wrap;
-}
-
-.active-filter {
-  background: var(--light-color);
-  padding: 5px 12px;
-  border-radius: 15px;
-  font-size: 0.85rem;
-  color: var(--text-color);
-  border: 1px solid var(--border-color);
-}
-
-.clear-filters-btn {
-  width: 100%;
-  margin-top: 10px;
-}
+  
+  .price-inputs input {
+    max-width: 70px;
+  }
+  
+  /* SEARCH-BOX DI MOBILE KECIL */
+  .search-box input {
+    padding: 8px;
+    font-size: 13px;
+  }
+  
+  .search-box .search-btn {
+    padding: 8px 12px;
+    width: 40px;
+  }
 }
